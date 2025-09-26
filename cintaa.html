@@ -1,0 +1,238 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Love Letter</title>
+  <style>
+    body {
+      margin: 0;
+      height: 100vh;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      align-items: center;
+      background: linear-gradient(135deg, #ffdde1, #ee9ca7);
+      font-family: "Segoe UI", sans-serif;
+      overflow: hidden;
+      position: relative;
+    }
+
+    /* Partikel hati jatuh */
+    .falling-heart {
+      position: absolute;
+      font-size: 20px;
+      color: rgba(255, 0, 85, 0.6);
+      animation: fall linear forwards;
+      pointer-events: none; /* Supaya tidak blokir klik */
+      z-index: 1;
+    }
+
+    @keyframes fall {
+      0% { transform: translateY(-10vh) rotate(0deg); opacity: 1; }
+      100% { transform: translateY(110vh) rotate(360deg); opacity: 0; }
+    }
+
+    /* Hati utama */
+    .heart {
+      width: 120px;
+      height: 108px;
+      background: radial-gradient(circle at 30% 30%, #ff4d6d, #d10042);
+      position: relative;
+      transform: rotate(-45deg);
+      cursor: pointer;
+      transition: transform 0.3s ease;
+      animation: pulse 1s infinite alternate;
+      box-shadow: 0 0 30px rgba(255, 77, 109, 0.7);
+      z-index: 10; /* Supaya di atas semua elemen */
+    }
+    .heart::before,
+    .heart::after {
+      content: "";
+      position: absolute;
+      width: 120px;
+      height: 108px;
+      background: radial-gradient(circle at 30% 30%, #ff4d6d, #d10042);
+      border-radius: 50%;
+    }
+    .heart::before {
+      top: -60px;
+      left: 0;
+    }
+    .heart::after {
+      left: 60px;
+      top: 0;
+    }
+    .heart:hover {
+      transform: rotate(-45deg) scale(1.1);
+      box-shadow: 0 0 40px rgba(255, 77, 109, 1);
+    }
+
+    @keyframes pulse {
+      from { transform: rotate(-45deg) scale(1); }
+      to   { transform: rotate(-45deg) scale(1.15); }
+    }
+
+    .hint {
+      margin-top: 20px;
+      font-size: 1.3rem;
+      font-weight: bold;
+      color: #b3001e;
+      animation: blink 1s infinite alternate;
+      text-shadow: 0 0 5px white;
+      z-index: 10;
+      position: relative;
+    }
+
+    @keyframes blink {
+      from { opacity: 1; }
+      to   { opacity: 0.4; }
+    }
+
+    .popup {
+      display: none;
+      position: fixed;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      background: #fffbea;
+      padding: 25px;
+      width: 320px;
+      max-width: 90%;
+      border-radius: 20px;
+      box-shadow: 0 10px 40px rgba(255, 77, 109, 0.6);
+      text-align: center;
+      animation: fadeIn 0.5s ease;
+      border: 2px solid #ff4d6d;
+      z-index: 20;
+    }
+
+    .popup h2 {
+      margin-top: 0;
+      color: #ff4d6d;
+      font-size: 1.8rem;
+    }
+
+    .popup p {
+      font-size: 1.1rem;
+      color: #b3001e;
+      margin-bottom: 15px;
+    }
+
+    .close-btn {
+      background: linear-gradient(to right, #ff4d6d, #ff758f);
+      color: white;
+      border: none;
+      padding: 10px 18px;
+      border-radius: 10px;
+      cursor: pointer;
+      font-weight: bold;
+      font-size: 1rem;
+      box-shadow: 0 5px 15px rgba(255, 77, 109, 0.4);
+      transition: all 0.3s ease;
+    }
+
+    .close-btn:hover {
+      background: linear-gradient(to right, #e63b59, #ff4d6d);
+      transform: scale(1.05);
+    }
+
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translate(-50%, -40%); }
+      to { opacity: 1; transform: translate(-50%, -50%); }
+    }
+
+    /* Tombol speaker */
+    .speaker {
+      position: fixed;
+      bottom: 15px;
+      right: 15px;
+      background: white;
+      border-radius: 50%;
+      padding: 10px;
+      box-shadow: 0 5px 15px rgba(0,0,0,0.3);
+      cursor: pointer;
+      transition: transform 0.3s ease;
+      font-size: 20px;
+      z-index: 15;
+    }
+
+    .speaker:hover {
+      transform: scale(1.1);
+    }
+  </style>
+</head>
+<body>
+
+  <!-- Hati -->
+  <div class="heart" id="heart"></div>
+  <div class="hint">Tekan yaa ❤</div>
+
+  <!-- Popup surat -->
+  <div class="popup" id="popup">
+    <h2>Wlee ❤</h2>
+    <p>Love you Gibran 💌</p>
+    <button class="close-btn" onclick="tutupSurat()">Tutup</button>
+  </div>
+
+  <!-- Audio -->
+  <audio id="backsound" src="c:\Users\Juda Benhur Turnip\Downloads\Dewa 19 - Aku Milikmu Official Music Video.mp3" loop></audio>
+
+  <!-- Ikon speaker -->
+  <div class="speaker" id="speaker">🔊</div>
+
+  <script>
+    const heart = document.getElementById('heart');
+    const popup = document.getElementById('popup');
+    const backsound = document.getElementById('backsound');
+    const speaker = document.getElementById('speaker');
+
+    // Coba autoplay kalau datang dari link
+    window.addEventListener('load', () => {
+      if (localStorage.getItem('playMusic') === 'true') {
+        backsound.play().catch(() => {
+          console.log("Autoplay diblokir, akan jalan saat klik hati.");
+        });
+        localStorage.removeItem('playMusic');
+      }
+      spawnHearts();
+    });
+
+    heart.addEventListener('click', () => {
+      if (backsound.paused) {
+        backsound.play().catch(err => console.log("Gagal memutar musik:", err));
+      }
+      popup.style.display = 'block';
+    });
+
+    speaker.addEventListener('click', () => {
+      if (backsound.muted) {
+        backsound.muted = false;
+        speaker.textContent = "🔊";
+      } else {
+        backsound.muted = true;
+        speaker.textContent = "🔈";
+      }
+    });
+
+    function tutupSurat() {
+      popup.style.display = 'none';
+    }
+
+    // Partikel hati jatuh
+    function spawnHearts() {
+      setInterval(() => {
+        const heartEl = document.createElement("div");
+        heartEl.classList.add("falling-heart");
+        heartEl.textContent = "❤";
+        heartEl.style.left = Math.random() * window.innerWidth + "px";
+        heartEl.style.fontSize = (Math.random() * 15 + 15) + "px";
+        heartEl.style.animationDuration = (Math.random() * 3 + 3) + "s";
+        document.body.appendChild(heartEl);
+        setTimeout(() => heartEl.remove(), 6000);
+      }, 400);
+    }
+  </script>
+
+</body>
+</html>
